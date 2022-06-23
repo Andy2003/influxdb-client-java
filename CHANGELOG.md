@@ -28,6 +28,7 @@
 
 ### Features
 1. [#354](https://github.com/influxdata/influxdb-client-java/pull/354): Supports `contains` filter [FluxDSL]
+1. [#366](https://github.com/influxdata/influxdb-client-java/pull/356): Added an endpoint to query with  InfluxQL (v1)
 
 ### Bug Fixes
 1. [#359](https://github.com/influxdata/influxdb-client-java/pull/359): Enable `OkHttp` retries for connection failure
