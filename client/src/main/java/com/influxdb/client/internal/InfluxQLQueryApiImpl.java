@@ -109,11 +109,8 @@ public class InfluxQLQueryApiImpl extends AbstractQueryApi implements InfluxQLQu
             @Nonnull final Cancellable cancellable,
             @Nullable final InfluxQLQueryResult.Series.ValueExtractor valueExtractor
     ) throws IOException {
-        InfluxQLQueryResult influxQLQueryResult = new InfluxQLQueryResult();
         List<InfluxQLQueryResult.Result> results = new ArrayList<>();
-        influxQLQueryResult.setResults(results);
 
-        InfluxQLQueryResult.Result result = null;
         Map<String, InfluxQLQueryResult.Series> series = null;
         Map<String, Integer> headerCols = null;
         int nameCol = 0;
@@ -125,34 +122,36 @@ public class InfluxQLQueryApiImpl extends AbstractQueryApi implements InfluxQLQu
                 if (cancellable.isCancelled()) {
                     break;
                 }
+                int resultIndex = results.size();
                 if (csvRecord.size() == 1 || csvRecord.get(0).equals("")) {
-                    if (result != null) {
-                        result.setSeries(new ArrayList<>(series.values()));
+                    if (series != null) {
+                        InfluxQLQueryResult.Result result = new InfluxQLQueryResult.Result(
+                                resultIndex,
+                                new ArrayList<>(series.values())
+                        );
+                        results.add(result);
                     }
-                    result = null;
+                    series = null;
                     continue;
                 }
 
-                if (result == null) {
+                if (series == null) {
+
                     List<String> header = csvRecord.toList();
                     headerCols = new LinkedHashMap<>();
                     for (int col = colsToSkip; col < header.size(); col++) {
                         String colName = header.get(col);
                         headerCols.put(colName, col - colsToSkip);
                     }
-                    result = new InfluxQLQueryResult.Result(results.size());
-                    results.add(result);
                     series = new LinkedHashMap<>();
 
                 } else {
                     String name = csvRecord.get(nameCol);
                     Map<String, Integer> finalHeaderCols = headerCols;
-                    InfluxQLQueryResult.Series serie = series.computeIfAbsent(name, n -> {
-                        InfluxQLQueryResult.Series s = new InfluxQLQueryResult.Series(n, finalHeaderCols);
-                        s.setValues(new ArrayList<>());
-                        return s;
-                    });
-                    int resultIndex = result.getIndex();
+                    InfluxQLQueryResult.Series serie = series.computeIfAbsent(
+                            name,
+                            n -> new InfluxQLQueryResult.Series(n, finalHeaderCols)
+                    );
                     Object[] values = headerCols.entrySet().stream().map(entry -> {
                         String value = csvRecord.get(entry.getValue() + colsToSkip);
                         if (valueExtractor != null) {
@@ -161,13 +160,17 @@ public class InfluxQLQueryApiImpl extends AbstractQueryApi implements InfluxQLQu
                         return value;
                     }).toArray();
                     InfluxQLQueryResult.Series.Record record = serie.new Record(values);
-                    serie.getValues().add(record);
+                    serie.addRecord(record);
                 }
             }
         }
-        if (result != null) {
-            result.setSeries(new ArrayList<>(series.values()));
+        if (series != null) {
+            InfluxQLQueryResult.Result result = new InfluxQLQueryResult.Result(
+                    results.size(),
+                    new ArrayList<>(series.values())
+            );
+            results.add(result);
         }
-        return influxQLQueryResult;
+        return new InfluxQLQueryResult(results);
     }
 }

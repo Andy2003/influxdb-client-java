@@ -21,6 +21,7 @@
  */
 package com.influxdb.query;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -33,29 +34,32 @@ import com.influxdb.utils.Arguments;
  */
 public class InfluxQLQueryResult {
 
-    private List<Result> results;
+    private final List<Result> results;
+
+    public InfluxQLQueryResult(@Nonnull final List<Result> results) {
+        Arguments.checkNotNull(results, "results");
+
+        this.results = results;
+    }
 
     /**
      * @return the results
      */
+    @Nonnull
     public List<Result> getResults() {
         return this.results;
     }
 
-    /**
-     * @param results the results to set
-     */
-    public void setResults(final List<Result> results) {
-        this.results = results;
-    }
-
     public static class Result {
-        private List<Series> series;
+        private final List<Series> series;
 
         private final int index;
 
-        public Result(final int index) {
+        public Result(final int index, @Nonnull final List<Series> series) {
+            Arguments.checkNotNull(series, "series");
+
             this.index = index;
+            this.series = series;
         }
 
         public int getIndex() {
@@ -65,15 +69,9 @@ public class InfluxQLQueryResult {
         /**
          * @return the series
          */
+        @Nonnull
         public List<Series> getSeries() {
             return this.series;
-        }
-
-        /**
-         * @param series the series to set
-         */
-        public void setSeries(final List<Series> series) {
-            this.series = series;
         }
 
     }
@@ -86,11 +84,15 @@ public class InfluxQLQueryResult {
         @Nonnull
         private final String name;
 
-        private List<Record> values;
+        private final List<Record> values;
 
         public Series(final @Nonnull String name, final @Nonnull Map<String, Integer> columns) {
+            Arguments.checkNotNull(name, "name");
+            Arguments.checkNotNull(columns, "columns");
+
             this.name = name;
             this.columns = columns;
+            this.values = new ArrayList<>();
         }
 
 
@@ -114,15 +116,15 @@ public class InfluxQLQueryResult {
         /**
          * @return the values
          */
+        @Nonnull
         public List<Record> getValues() {
             return this.values;
         }
 
-        /**
-         * @param values the values to set
-         */
-        public void setValues(final List<Record> values) {
-            this.values = values;
+        public void addRecord(@Nonnull final Record record) {
+            Arguments.checkNotNull(record, "record");
+
+            this.values.add(record);
         }
 
         @FunctionalInterface
