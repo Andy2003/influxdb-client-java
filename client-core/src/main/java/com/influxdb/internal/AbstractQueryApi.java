@@ -156,7 +156,7 @@ public abstract class AbstractQueryApi extends AbstractRestClient {
         return new RawIterator(queryCall, ERROR_CONSUMER);
     }
 
-    private void query(@Nonnull final Call<ResponseBody> query,
+    protected void query(@Nonnull final Call<ResponseBody> query,
                        @Nonnull final BiConsumer<Cancellable, BufferedSource> consumer,
                        @Nonnull final Consumer<? super Throwable> onError,
                        @Nonnull final Runnable onComplete,

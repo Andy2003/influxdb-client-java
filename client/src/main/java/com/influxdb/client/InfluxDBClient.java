@@ -252,6 +252,9 @@ public interface InfluxDBClient extends AutoCloseable {
     @Nonnull
     InvokableScriptsApi getInvokableScriptsApi();
 
+    @Nonnull
+    InfluxQLQueryApi getInfluxQLQueryApi();
+
     /**
      * Create an implementation of the API endpoints defined by the {@code service} interface.
      * <p>
